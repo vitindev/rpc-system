@@ -24,10 +24,10 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-.idea
-
 ### Gradle Patch ###
 # Java heap dump
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/gradle
+/.idea/
+/gradle/
