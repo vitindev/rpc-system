@@ -1,51 +1,65 @@
 package com.vitindev;
 
-import com.google.gson.Gson;
-import com.vitindev.client.RpcClient;
-import com.vitindev.packets.CalculatorResponse;
-import com.vitindev.server.RpcServer;
+import com.vitindev.packet.PacketManager;
+import com.vitindev.packet.request.PacketAccountRequest;
+import com.vitindev.packet.request.PacketCalculatorRequest;
+import com.vitindev.packet.response.PacketAccountResponse;
+import com.vitindev.packet.response.PacketCalculatorResponse;
+import com.vitindev.redis.ConnectionRedisFactory;
+import com.vitindev.redis.listener.InterceptorPubSubChannel;
 import lombok.Getter;
 
+import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
-@Getter
 public class Main {
 
-    public static UUID baseUUID = UUID.randomUUID();
-
     @Getter
-    private static final Gson gson = new Gson();
+    private static final PacketManager packetManager = new PacketManager();
+    @Getter
+    private static final ConnectionRedisFactory connectionRedisFactory = new ConnectionRedisFactory();
 
     public static void main(String[] args) {
 
-        RpcClient client = new RpcClient();
-        client.init();
+        final var channel = "Test of Stress";
 
-        RpcServer server = new RpcServer();
-        server.init();
-        server.loadExecutors();
+        connectionRedisFactory.connect();
+        connectionRedisFactory.subscribe(new InterceptorPubSubChannel(), channel);
 
-        CompletableFuture<CalculatorResponse> future = client.getRpcManager().call(new CalculatorResponse(0), baseUUID);
+        final var start = System.currentTimeMillis();
+        final var atomic2 = new AtomicInteger();
 
-        future.thenAccept(calculatorResponse -> {
+        final int chamada = 500;
 
-            try {
+        Executors.newFixedThreadPool(4).execute(() -> {
 
-                System.out.println(calculatorResponse.getResult());
+            for (int i = 0; i < chamada; i++) {
 
-            } catch (Throwable e) {
-                e.printStackTrace();
+                float x = new Random().nextFloat(1000);
+                float z = new Random().nextFloat(1000);
+
+                int finalI = i;
+                packetManager.call(
+                                new PacketCalculatorRequest(x, z, "*"),
+                                channel,
+                                PacketCalculatorResponse.class).
+                        thenAccept(response -> {
+                            System.out.println("call-" + finalI + "=" + response.result());
+                            atomic2.incrementAndGet();
+                        });
+
             }
 
-
-        }).exceptionally(throwable -> {
-
-            System.out.println(throwable.getMessage());
-
-            return null;
         });
 
+        while (atomic2.get() < chamada) {
+        }
+
+        System.out.println("Wait time = " + (System.currentTimeMillis() - start));
 
     }
 

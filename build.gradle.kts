@@ -11,11 +11,13 @@ repositories {
 
 dependencies {
 
-    compileOnly("org.projectlombok:lombok:1.18.26")
-    annotationProcessor("org.projectlombok:lombok:1.18.26")
+    compileOnly("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok:1.18.32")
 
-    implementation("redis.clients:jedis:3.9.0")
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("redis.clients:jedis:3.7.0")
+    implementation("com.google.code.gson:gson:2.10")
+    implementation("com.esotericsoftware:kryo:5.5.0")
+
 
 }
 
