@@ -25,7 +25,7 @@ public class KryoUtils {
         return kryoThreadLocal.get();
     }
 
-    public synchronized static byte[] serialize(Object obj) {
+    public static byte[] serialize(Object obj) {
 
         final var dataOutputStream = new ByteArrayOutputStream();
 
@@ -36,7 +36,7 @@ public class KryoUtils {
         return dataOutputStream.toByteArray();
     }
 
-    public synchronized static <T> T deserialize(byte[] data) {
+    public static <T> T deserialize(byte[] data) {
 
         final var dataInputStream = new ByteArrayInputStream(data);
 
